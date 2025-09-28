@@ -3,6 +3,7 @@ const openRequest = indexedDB.open("myDB");
 openRequest.addEventListener("success",(e)=>{
     db = openRequest.result
     console.log("DB opened successfully");
+    loadTodosFromDB()
 })
 openRequest.addEventListener("error",(e)=>{
   console.log("Error:", e.target.error);

@@ -1,4 +1,3 @@
-
 const input = document.getElementById("todo-input");
 const addBtn = document.getElementById("add-btn");
 const todoList = document.getElementById("todo-list");
@@ -8,52 +7,29 @@ const addTodo= () => {
     const todo=input.value.trim();
     if(todo === "") return;
     if(db){
-        let transaction = db.transaction("todotext","readwrite");
-        let store = transaction.objectStore("todotext")
-        let todoEntry = { todotext: todo };
-        let request = store.add(todoEntry)
-          request.onsuccess = (event) => {
-            const id = event.target.result; // DB-generated id
-            console.log("Todo saved to DB with id:", id);
-
-    if(editingTodo){
-        editingTodo.querySelector(".todo-text").textContent = todo
-        editingTodo.dataset.id = id
-         updateTodoInDB(id, todo);
-        editingTodo=null;
-        
+      if (editingTodo) {
+      const id = Number(editingTodo.dataset.id);
+      editingTodo.querySelector(".todo-text").textContent = todo;
+      updateTodoInDB(id, todo);
+      editingTodo = null;
     } else {
-    const toDo= document.createElement("div")
-    toDo.classList.add("todo")
-    toDo.dataset.id = id;
-    toDo.innerHTML = `<span class="todo-text">${todo}</span>
-        <span>
-            <button class="edit-btn">Edit</button>
-            <button class="delete-btn">Delete</button>
-        </span>`;
+   const transaction = db.transaction("todotext", "readwrite");
+      const store = transaction.objectStore("todotext");
+      const todoEntry = { todotext: todo };
+      const request = store.add(todoEntry);
 
+      request.onsuccess = (event) => {
+        const id = event.target.result;
+        console.log("Todo saved to DB with id:", id);
+        rendertodo({ id, todotext: todo });
+      };
 
-        const deleteBtn = toDo.querySelector(".delete-btn")
-        deleteBtn.addEventListener("click", () => {
-            deleteToDoFromDB(id)
-        toDo.remove();
-        });
-
-    const editBtn = toDo.querySelector(".edit-btn")
-    editBtn.addEventListener("click",() => {
-       input.value = toDo.querySelector(".todo-text").textContent
-       editingTodo = toDo
-
-    })
-    todoList.appendChild(toDo)
-}
-          };
-          
-        request.onerror = () => {
-            console.log("Error saving todo:", request.error);
-        };
+      request.onerror = () => {
+        console.log("Error saving todo:", request.error);
+      };
     }
-   input.value=""
+  }
+  input.value = "";
 }
 const deleteToDoFromDB = (id) => {
     const transaction = db.transaction("todotext","readwrite")
@@ -79,7 +55,45 @@ const updateTodoInDB = (id,newText) =>{
         console.log("Error updating todo:", request.error);
     };
 }
+const loadTodosFromDB = () =>{
+    const transaction = db.transaction("todotext","readonly")
+    const store = transaction.objectStore("todotext")
+    const request = store.getAll();
+    request.onsuccess=(event)=>{
+        const todos = event.target.result;
+        todos.forEach(todo => rendertodo(todo))
+    }
+    request.onerror=()=>{
+         console.log("Error loading todos:", request.error);
+    }
+}
+const rendertodo = (todoObj) =>{
+    const toDo = document.createElement("div")
+    toDo.classList.add("todo")
+    toDo.dataset.id = todoObj.id;
+    toDo.innerHTML =  `
+    <span class="todo-text">${todoObj.todotext}</span>
+    <span>
+      <button class="edit-btn">Edit</button>
+      <button class="delete-btn">Delete</button>
+    </span>
+  `;
+    const deleteBtn = toDo.querySelector(".delete-btn")
+    deleteBtn.addEventListener("click",()=>{
+        deleteToDoFromDB(todoObj.id)
+        toDo.remove()
+    })
+    const editBtn = toDo.querySelector(".edit-btn")
+        editBtn.addEventListener ("click" , ()=>{
+            input.value = toDo.querySelector(".todo-text").textContent
+            editingTodo= toDo
+        })
+        todoList.appendChild(toDo)
+    }
 
 
     addBtn.addEventListener("click", addTodo);
 
+input.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") addTodo();
+});
