@@ -1,7 +1,7 @@
 let db;
 const openRequest = indexedDB.open("myDB");
 openRequest.addEventListener("success",(e)=>{
-    db = openRequest.result
+     db = e.target.result;
     console.log("DB opened successfully");
     loadTodosFromDB()
 })
@@ -10,7 +10,7 @@ openRequest.addEventListener("error",(e)=>{
   
 })
 openRequest.addEventListener("upgradeneeded",(e)=>{
-    db = openRequest.result
+    
      db = e.target.result;
 
     // Create object store only if it doesn't exist
