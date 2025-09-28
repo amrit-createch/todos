@@ -74,8 +74,10 @@ const rendertodo = (todoObj) =>{
     toDo.innerHTML =  `
     <span class="todo-text">${todoObj.todotext}</span>
     <span>
+    <input type="checkbox">
       <button class="edit-btn">Edit</button>
       <button class="delete-btn">Delete</button>
+      
     </span>
   `;
     const deleteBtn = toDo.querySelector(".delete-btn")
